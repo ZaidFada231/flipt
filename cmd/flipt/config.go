@@ -10,8 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type configCmd struct {
-}
+type configCmd struct{}
 
 func newConfigCommand() *cobra.Command {
 	configCmd := &configCmd{}
@@ -79,6 +78,8 @@ func (c *configCmd) init(cmd *cobra.Command, args []string) error {
 }
 
 func (c *configCmd) edit(cmd *cobra.Command, args []string) error {
+	// TODO: return error if non-tty
+
 	b, err := os.ReadFile(fliptConfigFile)
 	if err != nil {
 		return fmt.Errorf("reading config file %w", err)
@@ -95,8 +96,8 @@ func (c *configCmd) edit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// open file for writing
-	f, err := os.OpenFile(fliptConfigFile, os.O_WRONLY|os.O_TRUNC, 0600)
+	// create if not exists, truncate if exists
+	f, err := os.Create(fliptConfigFile)
 	if err != nil {
 		return fmt.Errorf("opening config file %w", err)
 	}
