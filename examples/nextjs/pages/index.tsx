@@ -2,6 +2,7 @@ import { FliptApiClient } from "@flipt-io/flipt";
 import Head from "next/head";
 import Greeting from "../components/Greeting";
 import { FliptProvider } from "../hooks/flipt";
+import { Flag } from "../types/flipt";
 import { v4 as uuidv4 } from "uuid";
 
 type HomeProps = {
@@ -36,16 +37,18 @@ const client = new FliptApiClient({
 });
 
 export async function getServerSideProps() {
-  let language = "en";
+  let flag: Flag = { key: "language" };
+  let language: Flag["value"] = "en";
+
   try {
     const evaluation = await client.evaluation.variant({
       namespaceKey: "default",
-      flagKey: "language",
+      flagKey: flag.key,
       entityId: uuidv4(),
       context: {},
     });
 
-    language = evaluation.variantKey;
+    language = evaluation.variantKey as Flag["value"];
   } catch (err) {
     console.log(err);
   }
