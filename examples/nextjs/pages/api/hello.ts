@@ -1,3 +1,4 @@
+import { Flag } from "./../../types/flipt";
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import { FliptApiClient } from "@flipt-io/flipt";
@@ -15,7 +16,8 @@ export default async function handler(
   _req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  let language = "english";
+  let language: Flag["value"] = "en";
+
   try {
     const evaluation = await client.evaluation.variant({
       namespaceKey: "default",
@@ -24,14 +26,14 @@ export default async function handler(
       context: {},
     });
 
-    language = evaluation.variantKey;
+    language = evaluation.variantKey as Flag["value"];
   } catch (err) {
     console.log(err);
   }
 
   let response: any = {
     greeting:
-      language == "spanish"
+      language == "es"
         ? "Hola, from Next.js API route"
         : "Hello, from Next.js API route",
   };
