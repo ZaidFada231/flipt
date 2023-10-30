@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/internal/s3fs"
+	s3fs "go.flipt.io/flipt/internal/fs/s3"
 	"go.uber.org/zap"
 )
 

@@ -27,6 +27,7 @@ const (
 	Flipt_CreateNamespace_FullMethodName    = "/flipt.Flipt/CreateNamespace"
 	Flipt_UpdateNamespace_FullMethodName    = "/flipt.Flipt/UpdateNamespace"
 	Flipt_DeleteNamespace_FullMethodName    = "/flipt.Flipt/DeleteNamespace"
+	Flipt_ExportNamespace_FullMethodName    = "/flipt.Flipt/ExportNamespace"
 	Flipt_GetFlag_FullMethodName            = "/flipt.Flipt/GetFlag"
 	Flipt_ListFlags_FullMethodName          = "/flipt.Flipt/ListFlags"
 	Flipt_CreateFlag_FullMethodName         = "/flipt.Flipt/CreateFlag"
@@ -71,6 +72,7 @@ type FliptClient interface {
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error)
 	UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error)
 	DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ExportNamespace(ctx context.Context, in *ExportNamespaceRequest, opts ...grpc.CallOption) (*ExportNamespaceResponse, error)
 	GetFlag(ctx context.Context, in *GetFlagRequest, opts ...grpc.CallOption) (*Flag, error)
 	ListFlags(ctx context.Context, in *ListFlagRequest, opts ...grpc.CallOption) (*FlagList, error)
 	CreateFlag(ctx context.Context, in *CreateFlagRequest, opts ...grpc.CallOption) (*Flag, error)
@@ -169,6 +171,15 @@ func (c *fliptClient) UpdateNamespace(ctx context.Context, in *UpdateNamespaceRe
 func (c *fliptClient) DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Flipt_DeleteNamespace_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fliptClient) ExportNamespace(ctx context.Context, in *ExportNamespaceRequest, opts ...grpc.CallOption) (*ExportNamespaceResponse, error) {
+	out := new(ExportNamespaceResponse)
+	err := c.cc.Invoke(ctx, Flipt_ExportNamespace_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -465,6 +476,7 @@ type FliptServer interface {
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*Namespace, error)
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*Namespace, error)
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*emptypb.Empty, error)
+	ExportNamespace(context.Context, *ExportNamespaceRequest) (*ExportNamespaceResponse, error)
 	GetFlag(context.Context, *GetFlagRequest) (*Flag, error)
 	ListFlags(context.Context, *ListFlagRequest) (*FlagList, error)
 	CreateFlag(context.Context, *CreateFlagRequest) (*Flag, error)
@@ -523,6 +535,9 @@ func (UnimplementedFliptServer) UpdateNamespace(context.Context, *UpdateNamespac
 }
 func (UnimplementedFliptServer) DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteNamespace not implemented")
+}
+func (UnimplementedFliptServer) ExportNamespace(context.Context, *ExportNamespaceRequest) (*ExportNamespaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportNamespace not implemented")
 }
 func (UnimplementedFliptServer) GetFlag(context.Context, *GetFlagRequest) (*Flag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFlag not implemented")
@@ -752,6 +767,24 @@ func _Flipt_DeleteNamespace_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FliptServer).DeleteNamespace(ctx, req.(*DeleteNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flipt_ExportNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportNamespaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).ExportNamespace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_ExportNamespace_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).ExportNamespace(ctx, req.(*ExportNamespaceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1348,6 +1381,10 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteNamespace",
 			Handler:    _Flipt_DeleteNamespace_Handler,
+		},
+		{
+			MethodName: "ExportNamespace",
+			Handler:    _Flipt_ExportNamespace_Handler,
 		},
 		{
 			MethodName: "GetFlag",

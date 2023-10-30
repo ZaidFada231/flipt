@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// Service is an in-memory implementation of the oplock.Service.
-// It is only safe for single instance / in-process use.
+// Service is SQL implementation of the oplock.Service.
+// It is safe for multiple instance / concurrent use.
 type Service struct {
 	logger  *zap.Logger
 	driver  storagesql.Driver

@@ -477,6 +477,82 @@ message DeleteDistributionRequest {
   string namespace_key = 5;
 }
 
+// export types
+message FlagExport {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+  string type = 5;
+  repeated VariantExport variants = 8;
+  repeated RuleExport rules = 9;
+}
+
+message RuleExport {
+  message SegmentsRuleExport {
+    repeated string keys = 1;
+    string segment_operator = 2;
+  }
+  SegmentsRuleExport segments = 1;
+  int32 rank = 2;
+  repeated DistributionExport distributions = 3;
+}
+
+message RolloutExport {
+  message SegmentsRolloutExport {
+    repeated string keys = 1;
+    string segment_operator = 2;
+    bool value = 3;
+  }
+  message ThresholdRolloutExport {
+    float percentage = 1;
+    bool value = 2;
+  }
+  SegmentsRolloutExport segment = 1;
+  ThresholdRolloutExport threshold = 2;
+  string description = 3;
+}
+
+message DistributionExport {
+  string variant_key = 1;
+  float rollout = 2;
+}
+
+message VariantExport {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  string attachment = 4;
+}
+
+message SegmentExport {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  string match_type = 4;
+  repeated ConstraintExport constraints = 5;
+}
+
+message ConstraintExport {
+  string type = 1;
+  string property = 2;
+  string operator = 3;
+  string value = 4;
+  string description = 5;
+}
+
+message ExportNamespaceRequest {
+  string namespace_key = 1;
+  //int32 limit = 2;
+  //string page_token = 3;
+}
+
+message ExportNamespaceResponse {
+  string namespace_key = 1;
+  repeated FlagExport flags = 2;
+  repeated SegmentExport segments = 3;
+}
+
 service Flipt {
   rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {}
   rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {}
@@ -485,6 +561,7 @@ service Flipt {
   rpc CreateNamespace(CreateNamespaceRequest) returns (Namespace) {}
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (Namespace) {}
   rpc DeleteNamespace(DeleteNamespaceRequest) returns (google.protobuf.Empty) {}
+  rpc ExportNamespace(ExportNamespaceRequest) returns (ExportNamespaceResponse) {}
   rpc GetFlag(GetFlagRequest) returns (Flag) {}
   rpc ListFlags(ListFlagRequest) returns (FlagList) {}
   rpc CreateFlag(CreateFlagRequest) returns (Flag) {}
