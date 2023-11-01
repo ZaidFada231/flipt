@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -135,5 +136,13 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 }
 
 func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
-	return ext.NewExporter(lister, c.namespaces, c.allNamespaces).Export(ctx, dst)
+	opts := []ext.ExporterOption{}
+
+	if c.allNamespaces {
+		opts = append(opts, ext.WithAllNamespaces())
+	} else {
+		opts = append(opts, ext.WithNamespaces(strings.Split(c.namespaces, ",")))
+	}
+
+	return ext.NewExporter(lister, opts...).ExportYAML(ctx, dst)
 }

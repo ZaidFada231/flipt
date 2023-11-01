@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -748,12 +749,17 @@ func TestExport(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		opts := []ExporterOption{WithNamespaces(strings.Split(tc.namespaces, ","))}
+		if tc.allNamespaces {
+			opts = append(opts, WithAllNamespaces())
+		}
+
 		var (
-			exporter = NewExporter(tc.lister, tc.namespaces, tc.allNamespaces)
+			exporter = NewExporter(tc.lister, opts...)
 			b        = new(bytes.Buffer)
 		)
 
-		err := exporter.Export(context.Background(), b)
+		err := exporter.ExportYAML(context.Background(), b)
 		assert.NoError(t, err)
 
 		in, err := os.ReadFile(tc.path)
