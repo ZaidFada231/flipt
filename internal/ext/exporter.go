@@ -115,10 +115,14 @@ func (e *Exporter) ExportYAML(ctx context.Context, w io.Writer) error {
 	}
 
 	for i := 0; i < len(e.namespaces); i++ {
-		doc, err := e.ExportNamespace(ctx, e.namespaces[i])
+		doc := new(Document)
+
+		ns, err := e.ExportNamespace(ctx, e.namespaces[i])
 		if err != nil {
 			return err
 		}
+
+		doc.Namespace = ns
 
 		// Only provide the version to the first document in the YAML
 		// file.
@@ -136,14 +140,14 @@ func (e *Exporter) ExportYAML(ctx context.Context, w io.Writer) error {
 	return nil
 }
 
-func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Document, error) {
+func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (Namespace, error) {
 	var (
-		doc       = new(Document)
+		ns        = Namespace{}
 		remaining = true
 		nextPage  string
 	)
 
-	doc.Namespace = namespace
+	ns.Key = namespace
 	// export flags/variants in batches
 	for batch := int32(0); remaining; batch++ {
 		resp, err := e.store.ListFlags(
@@ -155,7 +159,7 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 			},
 		)
 		if err != nil {
-			return nil, fmt.Errorf("getting flags: %w", err)
+			return ns, fmt.Errorf("getting flags: %w", err)
 		}
 
 		flags := resp.Flags
@@ -179,7 +183,7 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 
 				if v.Attachment != "" {
 					if err := json.Unmarshal([]byte(v.Attachment), &attachment); err != nil {
-						return nil, fmt.Errorf("unmarshaling variant attachment: %w", err)
+						return ns, fmt.Errorf("unmarshaling variant attachment: %w", err)
 					}
 				}
 
@@ -202,7 +206,7 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 				},
 			)
 			if err != nil {
-				return nil, fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
+				return ns, fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 			}
 
 			rules := resp.Rules
@@ -222,7 +226,7 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 						},
 					}
 				default:
-					return nil, fmt.Errorf("wrong format for rule segments")
+					return ns, fmt.Errorf("wrong format for rule segments")
 				}
 
 				for _, d := range r.Distributions {
@@ -240,7 +244,7 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 				FlagKey:      flag.Key,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("getting rollout rules for flag %q: %w", flag.Key, err)
+				return ns, fmt.Errorf("getting rollout rules for flag %q: %w", flag.Key, err)
 			}
 
 			for _, r := range rollouts.Rules {
@@ -273,7 +277,7 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 				flag.Rollouts = append(flag.Rollouts, &rollout)
 			}
 
-			doc.Flags = append(doc.Flags, flag)
+			ns.Flags = append(ns.Flags, flag)
 		}
 	}
 
@@ -291,7 +295,7 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 			},
 		)
 		if err != nil {
-			return nil, fmt.Errorf("getting segments: %w", err)
+			return ns, fmt.Errorf("getting segments: %w", err)
 		}
 
 		segments := resp.Segments
@@ -316,10 +320,9 @@ func (e *Exporter) ExportNamespace(ctx context.Context, namespace string) (*Docu
 				})
 			}
 
-			doc.Segments = append(doc.Segments, segment)
+			ns.Segments = append(ns.Segments, segment)
 		}
 	}
 
-	return doc, nil
-
+	return ns, nil
 }

@@ -84,7 +84,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			}
 		}
 
-		var namespace = doc.Namespace
+		var namespace = doc.Namespace.Key
 
 		if namespace != "" && namespace != flipt.DefaultNamespace {
 			_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
@@ -116,7 +116,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 		)
 
 		// create flags/variants
-		for _, f := range doc.Flags {
+		for _, f := range doc.Namespace.Flags {
 			if f == nil {
 				continue
 			}
@@ -181,7 +181,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 		}
 
 		// create segments/constraints
-		for _, s := range doc.Segments {
+		for _, s := range doc.Namespace.Segments {
 			if s == nil {
 				continue
 			}
@@ -221,7 +221,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 		}
 
 		// create rules/distributions
-		for _, f := range doc.Flags {
+		for _, f := range doc.Namespace.Flags {
 			if f == nil {
 				continue
 			}

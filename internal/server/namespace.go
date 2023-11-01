@@ -105,9 +105,3 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 
 	return &empty.Empty{}, nil
 }
-
-func (s *Server) ExportNamespace(ctx context.Context, r *flipt.ExportNamespaceRequest) (*flipt.ExportNamespaceResponse, error) {
-	s.logger.Debug("export namespace", zap.Stringer("request", r))
-	//s.logger.Debug("export namespace", zap.Stringer("response", rollout))
-	return nil, nil
-}
