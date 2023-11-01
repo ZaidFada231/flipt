@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
 )
 
 type exportCommand struct {
@@ -144,5 +145,6 @@ func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Li
 		opts = append(opts, ext.WithNamespaces(strings.Split(c.namespaces, ",")))
 	}
 
-	return ext.NewExporter(lister, opts...).ExportYAML(ctx, dst)
+	enc := yaml.NewEncoder(dst)
+	return ext.NewExporter(lister, opts...).Export(ctx, enc)
 }

@@ -145,8 +145,8 @@ func snapshotFromReaders(sources ...io.Reader) (*StoreSnapshot, error) {
 			}
 
 			// set namespace to default if empty in document
-			if doc.Namespace == "" {
-				doc.Namespace = "default"
+			if doc.Namespace.Key == "" {
+				doc.Namespace.Key = "default"
 			}
 
 			if err := s.addDoc(doc); err != nil {
@@ -241,9 +241,9 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 }
 
 func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
-	ns := ss.ns[doc.Namespace]
+	ns := ss.ns[doc.Namespace.Key]
 	if ns == nil {
-		ns = newNamespace(doc.Namespace, doc.Namespace, ss.now)
+		ns = newNamespace(doc.Namespace.Key, doc.Namespace.Key, ss.now)
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
@@ -251,10 +251,10 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 		evalDists = ss.evalDists
 	}
 
-	for _, s := range doc.Segments {
+	for _, s := range doc.Namespace.Segments {
 		matchType := flipt.MatchType_value[s.MatchType]
 		segment := &flipt.Segment{
-			NamespaceKey: doc.Namespace,
+			NamespaceKey: doc.Namespace.Key,
 			Name:         s.Name,
 			Key:          s.Key,
 			Description:  s.Description,
@@ -266,7 +266,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 		for _, constraint := range s.Constraints {
 			constraintType := flipt.ComparisonType_value[constraint.Type]
 			segment.Constraints = append(segment.Constraints, &flipt.Constraint{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: doc.Namespace.Key,
 				SegmentKey:   segment.Key,
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				Operator:     constraint.Operator,
@@ -282,10 +282,10 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 		ns.segments[segment.Key] = segment
 	}
 
-	for _, f := range doc.Flags {
+	for _, f := range doc.Namespace.Flags {
 		flagType := flipt.FlagType_value[f.Type]
 		flag := &flipt.Flag{
-			NamespaceKey: doc.Namespace,
+			NamespaceKey: doc.Namespace.Key,
 			Key:          f.Key,
 			Name:         f.Name,
 			Description:  f.Description,
@@ -303,7 +303,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 
 			flag.Variants = append(flag.Variants, &flipt.Variant{
 				Id:           uuid.Must(uuid.NewV4()).String(),
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: doc.Namespace.Key,
 				Key:          v.Key,
 				Name:         v.Name,
 				Description:  v.Description,
@@ -319,7 +319,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 		for i, r := range f.Rules {
 			rank := int32(i + 1)
 			rule := &flipt.Rule{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: doc.Namespace.Key,
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				FlagKey:      f.Key,
 				Rank:         rank,
@@ -328,7 +328,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 			}
 
 			evalRule := &storage.EvaluationRule{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: doc.Namespace.Key,
 				FlagKey:      f.Key,
 				ID:           rule.Id,
 				Rank:         rank,
@@ -420,7 +420,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 		for i, rollout := range f.Rollouts {
 			rank := int32(i + 1)
 			s := &storage.EvaluationRollout{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: doc.Namespace.Key,
 				Rank:         rank,
 			}
 
@@ -428,7 +428,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				Rank:         rank,
 				FlagKey:      f.Key,
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: doc.Namespace.Key,
 				CreatedAt:    ss.now,
 				UpdatedAt:    ss.now,
 			}
@@ -517,7 +517,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
 
-	ss.ns[doc.Namespace] = ns
+	ss.ns[doc.Namespace.Key] = ns
 
 	ss.evalDists = evalDists
 

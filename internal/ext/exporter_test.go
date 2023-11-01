@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/rpc/flipt"
+	"gopkg.in/yaml.v3"
 )
 
 type mockLister struct {
@@ -757,9 +758,10 @@ func TestExport(t *testing.T) {
 		var (
 			exporter = NewExporter(tc.lister, opts...)
 			b        = new(bytes.Buffer)
+			enc      = yaml.NewEncoder(b)
 		)
 
-		err := exporter.ExportYAML(context.Background(), b)
+		err := exporter.Export(context.Background(), enc)
 		assert.NoError(t, err)
 
 		in, err := os.ReadFile(tc.path)

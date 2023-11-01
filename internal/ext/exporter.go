@@ -8,7 +8,6 @@ import (
 
 	"github.com/blang/semver/v4"
 	"go.flipt.io/flipt/rpc/flipt"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -77,13 +76,18 @@ func versionString(v semver.Version) string {
 	return fmt.Sprintf("%d.%d", v.Major, v.Minor)
 }
 
-func (e *Exporter) ExportYAML(ctx context.Context, w io.Writer) error {
-	var (
-		enc       = yaml.NewEncoder(w)
-		batchSize = e.batchSize
-	)
+type Encoder interface {
+	Encode(interface{}) error
+}
 
-	defer enc.Close()
+func (e *Exporter) Export(ctx context.Context, enc Encoder) error {
+	batchSize := e.batchSize
+
+	defer func() {
+		if closer, ok := enc.(io.Closer); ok {
+			closer.Close()
+		}
+	}()
 
 	// If allNamespaces is "true", then retrieve all the namespaces, and store them in a string slice.
 	if e.allNamespaces {
