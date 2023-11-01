@@ -542,13 +542,13 @@ message ConstraintExport {
 }
 
 message ExportNamespaceRequest {
-  string namespace_key = 1;
+  string key = 1;
   //int32 limit = 2;
   //string page_token = 3;
 }
 
 message ExportNamespaceResponse {
-  string namespace_key = 1;
+  string key = 1;
   repeated FlagExport flags = 2;
   repeated SegmentExport segments = 3;
 }

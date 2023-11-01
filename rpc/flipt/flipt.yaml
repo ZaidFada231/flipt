@@ -23,6 +23,9 @@ http:
   - selector: flipt.Flipt.DeleteNamespace
     delete: /api/v1/namespaces/{key}
 
+  - selector: flipt.Flipt.ExportNamespace
+    get: /api/v1/namespaces/{key}/export
+
   # evaluation
   #
   - selector: flipt.Flipt.Evaluate
