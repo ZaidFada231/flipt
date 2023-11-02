@@ -35,7 +35,6 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 		resp         = &data.EvaluationNamespaceSnapshot{}
 		remaining    = true
 		nextPage     string
-		segments     = make(map[string]*data.EvaluationSegment)
 	)
 
 	//  flags/variants in batches
@@ -70,119 +69,16 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 					return nil, fmt.Errorf("getting rules for flag %q: %w", f.Key, err)
 				}
 
-				for _, r := range rules {
-					rule := &data.EvaluationRule{
-						Id:              r.ID,
-						Rank:            r.Rank,
-						SegmentOperator: r.SegmentOperator,
-					}
+				flag.Rules = rules
+			}
 
-					for _, s := range r.Segments {
-						// optimization: reuse segment if already seen
-						if ss, ok := segments[s.SegmentKey]; ok {
-							rule.Segments = append(rule.Segments, ss)
-						} else {
-
-							ss := &data.EvaluationSegment{
-								Key:       s.SegmentKey,
-								MatchType: s.MatchType,
-							}
-
-							for _, c := range s.Constraints {
-								ss.Constraints = append(ss.Constraints, &data.EvaluationConstraint{
-									Id:       c.ID,
-									Type:     c.Type,
-									Property: c.Property,
-									Operator: c.Operator,
-									Value:    c.Value,
-								})
-							}
-
-							segments[s.SegmentKey] = ss
-							rule.Segments = append(rule.Segments, ss)
-						}
-
-						distributions, err := srv.store.GetEvaluationDistributions(ctx, r.ID)
-						if err != nil {
-							return nil, fmt.Errorf("getting distributions for rule %q: %w", r.ID, err)
-						}
-
-						// distributions for rule
-						for _, d := range distributions {
-							dist := &data.EvaluationDistribution{
-								VariantId:         d.VariantID,
-								VariantKey:        d.VariantKey,
-								VariantAttachment: d.VariantAttachment,
-								Rollout:           d.Rollout,
-							}
-							rule.Distributions = append(rule.Distributions, dist)
-						}
-
-						flag.Rules = append(flag.Rules, rule)
-					}
-
+			if f.Type == flipt.FlagType_BOOLEAN_FLAG_TYPE {
+				rollouts, err := srv.store.GetEvaluationRollouts(ctx, namespaceKey, f.Key)
+				if err != nil {
+					return nil, fmt.Errorf("getting rollout rules for flag %q: %w", f.Key, err)
 				}
 
-				if f.Type == flipt.FlagType_BOOLEAN_FLAG_TYPE {
-					rollouts, err := srv.store.GetEvaluationRollouts(ctx, namespaceKey, f.Key)
-					if err != nil {
-						return nil, fmt.Errorf("getting rollout rules for flag %q: %w", f.Key, err)
-					}
-
-					for _, r := range rollouts {
-						rollout := &data.EvaluationRollout{
-							Type: r.RolloutType,
-							Rank: r.Rank,
-						}
-
-						switch r.RolloutType {
-						case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
-							rollout.Rule = &data.EvaluationRollout_Threshold{
-								Threshold: &data.EvaluationRolloutThreshold{
-									Percentage: r.Threshold.Percentage,
-									Value:      r.Threshold.Value,
-								},
-							}
-
-						case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
-							segment := &data.EvaluationRolloutSegment{
-								Value:           r.Segment.Value,
-								SegmentOperator: r.Segment.SegmentOperator,
-							}
-
-							for _, s := range r.Segment.Segments {
-								// optimization: reuse segment if already seen
-								ss, ok := segments[s.SegmentKey]
-								if !ok {
-									ss := &data.EvaluationSegment{
-										Key:       s.SegmentKey,
-										MatchType: s.MatchType,
-									}
-
-									for _, c := range s.Constraints {
-										ss.Constraints = append(ss.Constraints, &data.EvaluationConstraint{
-											Id:       c.ID,
-											Type:     c.Type,
-											Property: c.Property,
-											Operator: c.Operator,
-											Value:    c.Value,
-										})
-									}
-
-									segments[s.SegmentKey] = ss
-								}
-
-								segment.Segments = append(segment.Segments, ss)
-							}
-
-							rollout.Rule = &data.EvaluationRollout_Segment{
-								Segment: segment,
-							}
-						}
-
-						flag.Rollouts = append(flag.Rollouts, rollout)
-					}
-				}
+				flag.Rollouts = rollouts
 			}
 		}
 	}

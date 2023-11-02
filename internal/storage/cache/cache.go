@@ -7,6 +7,7 @@ import (
 
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt/data"
 	"go.uber.org/zap"
 )
 
@@ -56,10 +57,10 @@ func (s *Store) get(ctx context.Context, key string, value any) bool {
 	return true
 }
 
-func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRule, error) {
+func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*data.EvaluationRule, error) {
 	cacheKey := fmt.Sprintf(evaluationRulesCacheKeyFmt, namespaceKey, flagKey)
 
-	var rules []*storage.EvaluationRule
+	var rules []*data.EvaluationRule
 
 	cacheHit := s.get(ctx, cacheKey, &rules)
 	if cacheHit {

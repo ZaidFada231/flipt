@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/data"
 )
 
 const (
@@ -14,64 +15,6 @@ const (
 	// MaxListLimit is the upper limit applied to any list operation page size.
 	MaxListLimit uint64 = 100
 )
-
-// EvaluationRule represents a rule and constraints required for evaluating if a
-// given flagKey matches a segment
-type EvaluationRule struct {
-	ID              string                        `json:"id"`
-	NamespaceKey    string                        `json:"namespace_key,omitempty"`
-	FlagKey         string                        `json:"flag_key,omitempty"`
-	Segments        map[string]*EvaluationSegment `json:"segments,omitempty"`
-	Rank            int32                         `json:"rank,omitempty"`
-	SegmentOperator flipt.SegmentOperator         `json:"segmentOperator,omitempty"`
-}
-
-type EvaluationSegment struct {
-	SegmentKey  string                 `json:"segment_key,omitempty"`
-	MatchType   flipt.MatchType        `json:"match_type,omitempty"`
-	Constraints []EvaluationConstraint `json:"constraints,omitempty"`
-}
-
-// EvaluationRollout represents a rollout in the form that helps with evaluation.
-type EvaluationRollout struct {
-	NamespaceKey string
-	RolloutType  flipt.RolloutType
-	Rank         int32
-	Threshold    *RolloutThreshold
-	Segment      *RolloutSegment
-}
-
-// RolloutThreshold represents Percentage(s) for use in evaluation.
-type RolloutThreshold struct {
-	Percentage float32
-	Value      bool
-}
-
-// RolloutSegment represents Segment(s) for use in evaluation.
-type RolloutSegment struct {
-	Value           bool
-	SegmentOperator flipt.SegmentOperator
-	Segments        map[string]*EvaluationSegment
-}
-
-// EvaluationConstraint represents a segment constraint that is used for evaluation
-type EvaluationConstraint struct {
-	ID       string               `json:"id,omitempty"`
-	Type     flipt.ComparisonType `json:"comparison_type,omitempty"`
-	Property string               `json:"property,omitempty"`
-	Operator string               `json:"operator,omitempty"`
-	Value    string               `json:"value,omitempty"`
-}
-
-// EvaluationDistribution represents a rule distribution along with its variant for evaluation
-type EvaluationDistribution struct {
-	ID                string
-	RuleID            string
-	VariantID         string
-	Rollout           float32
-	VariantKey        string
-	VariantAttachment string
-}
 
 type QueryParams struct {
 	Limit     uint64
@@ -172,9 +115,9 @@ const DefaultNamespace = "default"
 type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided
 	// Note: Rules MUST be returned in order by Rank
-	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
-	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRollout, error)
+	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*data.EvaluationRule, error)
+	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*data.EvaluationDistribution, error)
+	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*data.EvaluationRollout, error)
 }
 
 // NamespaceStore stores and retrieves namespaces

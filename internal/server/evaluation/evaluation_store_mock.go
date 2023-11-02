@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
-	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/data"
 )
 
 var _ Storer = &evaluationStoreMock{}
@@ -23,17 +23,17 @@ func (e *evaluationStoreMock) GetFlag(ctx context.Context, namespaceKey, key str
 	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
-func (e *evaluationStoreMock) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
+func (e *evaluationStoreMock) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*data.EvaluationRule, error) {
 	args := e.Called(ctx, namespaceKey, flagKey)
-	return args.Get(0).([]*storage.EvaluationRule), args.Error(1)
+	return args.Get(0).([]*data.EvaluationRule), args.Error(1)
 }
 
-func (e *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+func (e *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*data.EvaluationDistribution, error) {
 	args := e.Called(ctx, ruleID)
-	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
+	return args.Get(0).([]*data.EvaluationDistribution), args.Error(1)
 }
 
-func (e *evaluationStoreMock) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+func (e *evaluationStoreMock) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*data.EvaluationRollout, error) {
 	args := e.Called(ctx, namespaceKey, flagKey)
-	return args.Get(0).([]*storage.EvaluationRollout), args.Error(1)
+	return args.Get(0).([]*data.EvaluationRollout), args.Error(1)
 }

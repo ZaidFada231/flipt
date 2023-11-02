@@ -11,8 +11,8 @@ import (
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/metrics"
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/data"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
@@ -119,7 +119,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 		segmentKeys := make([]string, 0, len(rule.Segments))
 		segmentMatches := 0
 
-		for k, v := range rule.Segments {
+		for _, v := range rule.Segments {
 			matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType)
 			if err != nil {
 				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
@@ -128,7 +128,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 			if matched {
 				e.logger.Debug(reason)
-				segmentKeys = append(segmentKeys, k)
+				segmentKeys = append(segmentKeys, v.Key)
 				segmentMatches++
 			}
 		}
@@ -155,14 +155,14 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 			resp.SegmentKeys = segmentKeys
 		}
 
-		distributions, err := e.store.GetEvaluationDistributions(ctx, rule.ID)
+		distributions, err := e.store.GetEvaluationDistributions(ctx, rule.Id)
 		if err != nil {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err
 		}
 
 		var (
-			validDistributions []*storage.EvaluationDistribution
+			validDistributions []*data.EvaluationDistribution
 			buckets            []int
 		)
 
@@ -219,7 +219,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, string, error) {
+func matchConstraints(evalCtx map[string]string, constraints []*data.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, string, error) {
 	constraintMatches := 0
 
 	var reason string
@@ -234,13 +234,13 @@ func matchConstraints(evalCtx map[string]string, constraints []storage.Evaluatio
 
 		switch c.Type {
 		case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-			match = matchesString(c, v)
+			match = matchesString(*c, v)
 		case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-			match, err = matchesNumber(c, v)
+			match, err = matchesNumber(*c, v)
 		case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-			match, err = matchesBool(c, v)
+			match, err = matchesBool(*c, v)
 		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
-			match, err = matchesDateTime(c, v)
+			match, err = matchesDateTime(*c, v)
 		default:
 			return false, reason, errs.ErrInvalid("unknown constraint type")
 		}
@@ -309,7 +309,7 @@ const (
 	percentMultiplier float32 = float32(totalBucketNum) / 100
 )
 
-func matchesString(c storage.EvaluationConstraint, v string) bool {
+func matchesString(c data.EvaluationConstraint, v string) bool {
 	switch c.Operator {
 	case flipt.OpEmpty:
 		return len(strings.TrimSpace(v)) == 0
@@ -337,7 +337,7 @@ func matchesString(c storage.EvaluationConstraint, v string) bool {
 	return false
 }
 
-func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
+func matchesNumber(c data.EvaluationConstraint, v string) (bool, error) {
 	switch c.Operator {
 	case flipt.OpNotPresent:
 		return len(strings.TrimSpace(v)) == 0, nil
@@ -379,7 +379,7 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 	return false, nil
 }
 
-func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
+func matchesBool(c data.EvaluationConstraint, v string) (bool, error) {
 	switch c.Operator {
 	case flipt.OpNotPresent:
 		return len(strings.TrimSpace(v)) == 0, nil
@@ -407,7 +407,7 @@ func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
 	return false, nil
 }
 
-func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
+func matchesDateTime(c data.EvaluationConstraint, v string) (bool, error) {
 	switch c.Operator {
 	case flipt.OpNotPresent:
 		return len(strings.TrimSpace(v)) == 0, nil

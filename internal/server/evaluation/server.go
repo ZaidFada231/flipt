@@ -3,8 +3,8 @@ package evaluation
 import (
 	"context"
 
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/data"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -13,9 +13,9 @@ import (
 // Storer is the minimal abstraction for interacting with the storage layer for evaluation.
 type Storer interface {
 	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
-	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
-	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error)
+	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*data.EvaluationRule, error)
+	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*data.EvaluationDistribution, error)
+	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*data.EvaluationRollout, error)
 }
 
 // Server serves the Flipt evaluate v2 gRPC Server.

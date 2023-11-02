@@ -6,6 +6,7 @@ import (
 
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/data"
 )
 
 var _ storage.Store = (*syncedStore)(nil)
@@ -117,7 +118,7 @@ func (s *syncedStore) CountSegments(ctx context.Context, namespaceKey string) (u
 	return s.Store.CountSegments(ctx, namespaceKey)
 }
 
-func (s *syncedStore) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
+func (s *syncedStore) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*data.EvaluationRule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -128,14 +129,14 @@ func (s *syncedStore) GetEvaluationRules(ctx context.Context, namespaceKey strin
 	return s.Store.GetEvaluationRules(ctx, namespaceKey, flagKey)
 }
 
-func (s *syncedStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+func (s *syncedStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*data.EvaluationDistribution, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	return s.Store.GetEvaluationDistributions(ctx, ruleID)
 }
 
-func (s *syncedStore) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+func (s *syncedStore) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*data.EvaluationRollout, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
